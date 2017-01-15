@@ -10,17 +10,31 @@ const sourcePath = path.join(__dirname, 'app');
 const distPath = path.join(__dirname, 'dist');
 
 const config = {
-  entry: path.join(__dirname, 'app/index.js'),
+  entry: [
+    'react-hot-loader/patch',
+    // activate HMR for React
+
+    'webpack-dev-server/client?http://localhost:9000',
+    // bundle the client for webpack-dev-server
+    // and connect to the provided endpoint
+
+    'webpack/hot/only-dev-server',
+    // bundle the client for hot reloading
+    // only- means to only hot reload for successful updates
+    path.join(__dirname, 'app/index.js')
+  ],
   output: {
     path: distPath,
-    // publicPath: '/',
+    publicPath: '/',
     filename: 'bundle.js'
+
   },
   devServer: {
     contentBase: distPath,
-    port:9000,
+    port: 9000,
+    hot:true,
+    publicPath: '/',
     // historyApiFallback: true,
-    // inline: true,
   },
   module: {
     rules: [ // Loaders are last to first
@@ -41,7 +55,10 @@ const config = {
   devtool: isProd ? 'source-map' : 'eval',
   plugins: [
     new ExtractTextPlugin({ filename: 'bundle.css', disable: false, allChunks: true }),
-    new HtmlWebpackPlugin({ template: './app/index.html' })
+    new HtmlWebpackPlugin({ template: './app/index.html' }),
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NamedModulesPlugin(),
+    // prints more readable module names in the browser console on HMR updates
   ],
   resolve: {
     extensions: ['.js', '.jsx'],
