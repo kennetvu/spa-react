@@ -1,24 +1,54 @@
 const path = require('path');
 const webpack = require('webpack');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+const nodeEnv = process.env.NODE_ENV || 'development';
+const isProd = nodeEnv === 'production';
+
+const sourcePath = path.join(__dirname, 'app');
+const distPath = path.join(__dirname, 'dist');
+
 const config = {
-  entry: path.join(__dirname, 'app/main.js'),
+  entry: path.join(__dirname, 'app/index.js'),
   output: {
-    path: './dist',
+    path: distPath,
+    // publicPath: '/',
     filename: 'bundle.js'
   },
-  module: {
-    rules: [{
-      test: /\.css$/,
-      // exclude: /node_modules/,
-      loader: ExtractTextPlugin.extract({
-        loader: 'css-loader?sourceMap'
-      })
-    }]
+  devServer: {
+    contentBase: distPath,
+    port:9000,
+    // historyApiFallback: true,
+    // inline: true,
   },
-  devtool: 'source-map',
+  module: {
+    rules: [ // Loaders are last to first
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: ['babel-loader']
+      },
+      {
+        test: /\.css$/,
+        // exclude: /node_modules/,
+        loader: ExtractTextPlugin.extract({
+          loader: 'css-loader?sourceMap'
+        })
+      }
+    ]
+  },
+  devtool: isProd ? 'source-map' : 'eval',
   plugins: [
-    new ExtractTextPlugin({ filename: 'bundle.css', disable: false, allChunks: true })
-  ]
+    new ExtractTextPlugin({ filename: 'bundle.css', disable: false, allChunks: true }),
+    new HtmlWebpackPlugin({ template: './app/index.html' })
+  ],
+  resolve: {
+    extensions: ['.js', '.jsx'],
+    modules: [
+      path.resolve(__dirname, 'node_modules'),
+      sourcePath
+    ]
+  }
 };
 module.exports = config;
